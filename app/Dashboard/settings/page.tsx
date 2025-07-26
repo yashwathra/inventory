@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-  Dialog, DialogTrigger, DialogContent, DialogHeader,
+  Dialog, DialogContent, DialogHeader,
   DialogTitle, DialogFooter, 
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ export default function BrandCategoryPage() {
       const data = await res.json();
       if (res.ok) setBrandData(data.data);
       else toast.error(data.message || 'Failed to fetch brands');
-    } catch (err) {
+    } catch  {
       toast.error('Failed to fetch brands');
     }
   };
@@ -42,7 +42,7 @@ export default function BrandCategoryPage() {
       const data = await res.json();
       if (res.ok) setCategoryData(data.data);
       else toast.error(data.message || 'Failed to fetch categories');
-    } catch (err) {
+    } catch  {
       toast.error('Failed to fetch categories');
     }
   };
@@ -76,7 +76,7 @@ export default function BrandCategoryPage() {
       } else {
         toast.error(data.message || 'Something went wrong');
       }
-    } catch (err) {
+    } catch  {
       toast.error('Error creating brand');
     } finally {
       setLoading(false);
@@ -107,7 +107,7 @@ export default function BrandCategoryPage() {
       } else {
         toast.error(data.message || 'Something went wrong');
       }
-    } catch (err) {
+    } catch  {
       toast.error('Error creating category');
     } finally {
       setCategoryLoading(false);

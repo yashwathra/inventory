@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       selectedProductIds,   // array of product _ids
       quantity,             // number
       paymentMode,          // optional, string
-      remark,               // optional, string
+                   // optional, string
       billDate              // optional, passed from frontend
     } = req.body;
 

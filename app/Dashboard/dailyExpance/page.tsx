@@ -24,7 +24,15 @@ export default function DailyIncomeTracker() {
   const [sales, setSales] = useState('');
   const [expense, setExpense] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [rowData, setRowData] = useState<any[]>([]);
+  type IncomeEntry = {
+  date: string;
+  sales: number;
+  expense: number;
+  income: number;
+};
+
+const [rowData, setRowData] = useState<IncomeEntry[]>([]);
+
 
   const handleAddRecord = () => {
     if (!selectedDate || !sales || !expense) return;
@@ -51,7 +59,8 @@ export default function DailyIncomeTracker() {
       headerName: "Net Income (₹)",
       field: "income",
       flex: 1,
-      cellStyle: (params: any) => ({
+     cellStyle: (params: { value: number }) => ({
+
         color: params.value < 0 ? 'red' : 'green',
         fontWeight: 'bold',
       }),

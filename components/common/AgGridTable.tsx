@@ -1,22 +1,27 @@
 "use client";
 
-import { AgGridReact } from 'ag-grid-react';
-import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
-import { useMemo } from 'react';
+import { AgGridReact } from "ag-grid-react";
+import { ModuleRegistry, AllCommunityModule, ColDef, } from "ag-grid-community";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import { useMemo } from "react";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-type AgGridTableProps = {
-  columnDefs: any[];
-  rowData: any[];
+// Props with generic type T for rowData
+type AgGridTableProps<T> = {
+  columnDefs: ColDef[];
+  rowData: T[];
   className?: string;
 };
 
-export default function AgGridTable({ columnDefs, rowData, className }: AgGridTableProps) {
-  const defaultColDef = useMemo(() => ({
+export default function AgGridTable<T>({
+  columnDefs,
+  rowData,
+  className = "",
+}: AgGridTableProps<T>) {
+  const defaultColDef = useMemo<ColDef>(() => ({
     sortable: true,
     filter: true,
     resizable: true,

@@ -50,7 +50,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     return res.status(201).json({ success: true, data: newBill });
-  } catch (error: any) {
-    return res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+    return res.status(500).json({ success: false, message: 'Something went wrong' });
   }
 }

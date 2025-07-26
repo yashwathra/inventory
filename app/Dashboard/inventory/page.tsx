@@ -13,12 +13,40 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';    
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
+
+interface InventoryItem {
+  _id?: string;
+  category: string;
+  brand: string;
+  product: string;
+  modelNumber: string;
+  stockQuantity: number;
+  costPrice: number;
+  purchaseDate: string;
+  remark: string;
+}
+
+interface OptionType {
+  _id: string;
+  name: string;
+}
+
+// 👇 Form state uses string for numeric inputs
+type FormInventoryItem = {
+  category: string;
+  brand: string;
+  product: string;
+  modelNumber: string;
+  stockQuantity: string;
+  costPrice: string;
+  remark: string;
+};
 
 const columnDefs = [
   { headerName: "Category", field: "category", flex: 1 },
@@ -34,11 +62,11 @@ const columnDefs = [
 export default function InventoryPage() {
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [rowData, setRowData] = useState<any[]>([]);
-  const [brands, setBrands] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [rowData, setRowData] = useState<InventoryItem[]>([]);
+  const [brands, setBrands] = useState<OptionType[]>([]);
+  const [categories, setCategories] = useState<OptionType[]>([]);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormInventoryItem>({
     category: '',
     brand: '',
     product: '',
@@ -48,7 +76,6 @@ export default function InventoryPage() {
     remark: ''
   });
 
-  // Fetch categories, brands, and inventory
   useEffect(() => {
     fetch('/api/Dashboard/category/get')
       .then(res => res.json())
@@ -85,11 +112,15 @@ export default function InventoryPage() {
       return;
     }
 
-    const newItem = {
-      ...form,
+    const newItem: InventoryItem = {
+      category: form.category,
+      brand: form.brand,
+      product: form.product,
+      modelNumber: form.modelNumber,
       stockQuantity: Number(form.stockQuantity),
       costPrice: Number(form.costPrice),
-      purchaseDate: selectedDate ? format(selectedDate, "dd-mm-yyyy") : '',
+      purchaseDate: format(selectedDate, "dd-MM-yyyy"),
+      remark: form.remark
     };
 
     try {
@@ -103,7 +134,15 @@ export default function InventoryPage() {
 
       if (res.ok) {
         toast.success('Product added');
-        setForm({ category: '', brand: '', product: '', modelNumber: '', stockQuantity: '', costPrice: '', remark: '' });
+        setForm({
+          category: '',
+          brand: '',
+          product: '',
+          modelNumber: '',
+          stockQuantity: '',
+          costPrice: '',
+          remark: ''
+        });
         setSelectedDate(undefined);
         setOpen(false);
         fetchInventory();
@@ -138,14 +177,14 @@ export default function InventoryPage() {
             <form className="grid gap-4" onSubmit={handleSubmit}>
               <select name="category" value={form.category} onChange={handleChange} className="border p-2 rounded">
                 <option value="">Select Category</option>
-                {categories.map((cat: any) => (
+                {categories.map((cat) => (
                   <option key={cat._id} value={cat.name}>{cat.name}</option>
                 ))}
               </select>
 
               <select name="brand" value={form.brand} onChange={handleChange} className="border p-2 rounded">
                 <option value="">Select Brand</option>
-                {brands.map((b: any) => (
+                {brands.map((b) => (
                   <option key={b._id} value={b.name}>{b.name}</option>
                 ))}
               </select>

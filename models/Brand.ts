@@ -1,7 +1,11 @@
-// models/Brand.ts
-import mongoose, { Schema, models, model } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-const BrandSchema = new Schema(
+export interface BrandType extends Document {
+  name: string;
+  description?: string;
+}
+
+const BrandSchema = new Schema<BrandType>(
   {
     name: { type: String, required: true, unique: true },
     description: { type: String },
@@ -9,6 +13,4 @@ const BrandSchema = new Schema(
   { timestamps: true }
 );
 
-const Brand = models.Brand || model('Brand', BrandSchema);
-export default Brand;
-    
+export default mongoose.models.Brand || mongoose.model<BrandType>('Brand', BrandSchema);

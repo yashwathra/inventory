@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import AgGridTable from "@/components/common/AgGridTable";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,25 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+// Type definitions
+interface InventoryItem {
+  _id: string;
+  product: string;
+  brand: string;
+  costPrice: number;
+}
+
+interface Bill {
+  billNo: string;
+  customer: string;
+  phone: string;
+  products: string;
+  stock: number;
+  total: string;
+  billDate: string;
+  paymentMode: string;
+}
+
 const columnDefs = [
   { headerName: "Bill No", field: "billNo", flex: 1 },
   { headerName: "Customer", field: "customer", flex: 1 },
@@ -27,19 +46,16 @@ const columnDefs = [
   { headerName: "Payment Mode", field: "paymentMode", flex: 1 },
 ];
 
-
-
 export default function SalesPage() {
   const [open, setOpen] = useState(false);
-  const [inventory, setInventory] = useState<any[]>([]);
-  const [bills, setBills] = useState<any[]>([]);
-  const [selectedProductId, setSelectedProductId] = useState("");
-  const [quantity, setQuantity] = useState(1);
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [paymentMode, setPaymentMode] = useState("");
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [remark, setRemark] = useState("");
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
+  const [quantity, setQuantity] = useState<number>(1);
+  const [customerName, setCustomerName] = useState<string>("");
+  const [customerPhone, setCustomerPhone] = useState<string>("");
+  const [paymentMode, setPaymentMode] = useState<string>("");
+  const [totalAmount, setTotalAmount] = useState<number>(0);
 
   useEffect(() => {
     const fetchInventory = async () => {
@@ -56,16 +72,27 @@ export default function SalesPage() {
   const fetchBills = async () => {
     try {
       const res = await axios.get("/api/Dashboard/bills/get");
-      const formatted = res.data.data.map((bill: any) => ({
+
+    const formatted: Bill[] = res.data.data.map((bill: {
+  _id: string;
+  customer: { name: string; phone: string };
+  products: { product: string; quantity: number }[];
+  totalAmount: number;
+  billDate: string;
+  paymentMode: string;
+}) => ({
+
         billNo: bill._id.slice(-6).toUpperCase(),
         customer: bill.customer?.name,
         phone: bill.customer?.phone,
-        products: bill.products.map((p: any) => p.product).join(", "),
-        stock: bill.products.reduce((sum: number, p: any) => sum + (p.quantity || 1), 0),
+        products: bill.products.map((p: { product: string }) => p.product).join(", "),
+stock: bill.products.reduce((sum: number, p: { quantity: number }) => sum + (p.quantity || 1), 0),
+
         total: `₹${bill.totalAmount}`,
         billDate: bill.billDate ? new Date(bill.billDate).toISOString().split("T")[0] : "",
         paymentMode: bill.paymentMode || "N/A",
       }));
+
       setBills(formatted);
     } catch (error) {
       console.error("Error fetching bills:", error);
@@ -94,12 +121,12 @@ export default function SalesPage() {
       selectedProductIds: [selectedProductId],
       quantity,
       paymentMode,
-      billDate: new Date().toISOString(), 
+      billDate: new Date().toISOString(),
     };
 
     try {
       await axios.post("/api/Dashboard/bills/create", payload);
-      await fetchBills(); 
+      await fetchBills();
       setOpen(false);
     } catch (err) {
       console.error("Error creating bill:", err);
@@ -160,20 +187,15 @@ export default function SalesPage() {
               />
 
               <select
-  value={paymentMode}
-  onChange={(e) => setPaymentMode(e.target.value)}
-  className="border rounded p-2"
->
-  <option value="">Select Payment Mode</option>
-  <option value="Cash">Cash</option>
-  <option value="UPI">UPI</option>
-  <option value="Card">Card</option>
-</select>
-
-
-
-
-              
+                value={paymentMode}
+                onChange={(e) => setPaymentMode(e.target.value)}
+                className="border rounded p-2"
+              >
+                <option value="">Select Payment Mode</option>
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Card">Card</option>
+              </select>
 
               <div>Total: ₹{totalAmount}</div>
 
