@@ -5,11 +5,17 @@ const InventorySchema = new Schema(
     category: { type: String, required: true },
     brand: { type: String, required: true },
     product: { type: String, required: true },
-    modelNumber: String,
-    stockQuantity: Number,
-    costPrice: Number,
-    purchaseDate: String,
-    remark: String
+    modelNumber: { type: String },
+    stockQuantity: { type: Number, default: 0 },
+    costPrice: { type: Number, default: 0 },
+    purchaseDate: { type: Date, default: Date.now },
+    remark: { type: String },
+
+    specifications: {
+      type: Map,
+      of: String,
+      default: {}
+    }
   },
   { timestamps: true }
 );

@@ -51,7 +51,7 @@ export default function BrandCategoryPage() {
     fetchBrands();
     fetchCategories();
   }, []);
-
+  
   const handleCreateBrand = async () => {
     if (!brandName.trim()) {
       toast.error('Brand name is required');
@@ -103,7 +103,7 @@ export default function BrandCategoryPage() {
         setCategoryOpen(false);
         setCategoryName('');
         setCategoryDesc('');
-        fetchCategories(); // reload list
+        fetchCategories(); 
       } else {
         toast.error(data.message || 'Something went wrong');
       }
@@ -210,3 +210,4 @@ export default function BrandCategoryPage() {
     </div>
   );
 }
+  

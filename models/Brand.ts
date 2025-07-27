@@ -1,16 +1,20 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, model, models, Document } from 'mongoose';
+import type { BrandType } from '@/types/brand'; // adjust path as needed
 
-export interface BrandType extends Document {
-  name: string;
-  description?: string;
-}
+interface BrandDocument extends Document, Omit<BrandType, '_id'> {}
 
-const BrandSchema = new Schema<BrandType>(
-  {
-    name: { type: String, required: true, unique: true },
-    description: { type: String },
+const BrandSchema = new Schema<BrandDocument>({
+  name: {
+    type: String,
+    required: true,
+    unique: true,
   },
-  { timestamps: true }
-);
+  description: {
+    type: String,
+  },
+});
 
-export default mongoose.models.Brand || mongoose.model<BrandType>('Brand', BrandSchema);
+const Brand = models.Brand || model<BrandDocument>('Brand', BrandSchema);
+
+export default Brand;
+export type { BrandType };

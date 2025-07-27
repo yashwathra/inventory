@@ -1,5 +1,9 @@
-import mongoose, { Schema, models, model } from 'mongoose';
-const CategorySchema = new Schema(
+import mongoose, { Schema, models, model, Document } from 'mongoose';
+import { ICategory } from '@/types/Category';
+
+interface CategoryDocument extends ICategory, Document {}
+
+const CategorySchema = new Schema<CategoryDocument>(
   {
     name: { type: String, required: true, unique: true },
     description: { type: String },
@@ -7,5 +11,5 @@ const CategorySchema = new Schema(
   { timestamps: true }
 );
 
-const Category = models.Category || model('Category', CategorySchema);
-export default Category;    
+const Category = models.Category || model<CategoryDocument>('Category', CategorySchema);
+export default Category;

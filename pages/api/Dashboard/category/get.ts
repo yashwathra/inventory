@@ -1,4 +1,3 @@
-// pages/api/category/index.ts
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/lib/db';
@@ -12,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const categories = await Category.find().sort({ createdAt: -1 }); // Optional sorting by latest
+    const categories = await Category.find({}, 'name slug description').sort({ createdAt: -1 });
     return res.status(200).json({ success: true, data: categories });
   } catch (error: unknown) {
     if (error instanceof Error) {

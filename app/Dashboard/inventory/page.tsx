@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 
@@ -30,6 +31,7 @@ interface InventoryItem {
   costPrice: number;
   purchaseDate: string;
   remark: string;
+  specifications: Record<string, string>;
 }
 
 interface OptionType {
@@ -37,7 +39,6 @@ interface OptionType {
   name: string;
 }
 
-// 👇 Form state uses string for numeric inputs
 type FormInventoryItem = {
   category: string;
   brand: string;
@@ -46,6 +47,14 @@ type FormInventoryItem = {
   stockQuantity: string;
   costPrice: string;
   remark: string;
+};
+
+// 📦 Dynamic Spec Fields per Category
+const CATEGORY_FIELDS: Record<string, string[]> = {
+  Mobile: ['RAM', 'ROM', 'IMEI', 'Color'],
+  Tablet: ['RAM', 'ROM', 'IMEI', 'Color'],
+  TV: ['Screen Size', 'Resolution', 'Smart'],
+  Laptop: ['RAM', 'SSD', 'Processor', 'OS'],
 };
 
 const columnDefs = [
@@ -61,6 +70,8 @@ const columnDefs = [
 
 export default function InventoryPage() {
   const [open, setOpen] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [brandOpen, setBrandOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [rowData, setRowData] = useState<InventoryItem[]>([]);
   const [brands, setBrands] = useState<OptionType[]>([]);
@@ -75,6 +86,8 @@ export default function InventoryPage() {
     costPrice: '',
     remark: ''
   });
+
+  const [specifications, setSpecifications] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetch('/api/Dashboard/category/get')
@@ -100,8 +113,12 @@ export default function InventoryPage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSpecChange = (key: string, value: string) => {
+    setSpecifications(prev => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -120,7 +137,8 @@ export default function InventoryPage() {
       stockQuantity: Number(form.stockQuantity),
       costPrice: Number(form.costPrice),
       purchaseDate: format(selectedDate, "dd-MM-yyyy"),
-      remark: form.remark
+      remark: form.remark,
+      specifications
     };
 
     try {
@@ -144,6 +162,7 @@ export default function InventoryPage() {
           remark: ''
         });
         setSelectedDate(undefined);
+        setSpecifications({});
         setOpen(false);
         fetchInventory();
       } else {
@@ -175,19 +194,63 @@ export default function InventoryPage() {
             </DialogHeader>
 
             <form className="grid gap-4" onSubmit={handleSubmit}>
-              <select name="category" value={form.category} onChange={handleChange} className="border p-2 rounded">
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat.name}>{cat.name}</option>
-                ))}
-              </select>
+              
+              {/* Category Dropdown */}
+              <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" className="w-full justify-between">
+                    {form.category || "Select Category"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search category..." />
+                    <CommandEmpty>No category found.</CommandEmpty>
+                    <CommandGroup>
+                      {categories.map((cat) => (
+                        <CommandItem
+                          key={cat._id}
+                          onSelect={() => {
+                            setForm((prev) => ({ ...prev, category: cat.name }));
+                            setSpecifications({});
+                            setCategoryOpen(false);
+                          }}
+                        >
+                          {cat.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
 
-              <select name="brand" value={form.brand} onChange={handleChange} className="border p-2 rounded">
-                <option value="">Select Brand</option>
-                {brands.map((b) => (
-                  <option key={b._id} value={b.name}>{b.name}</option>
-                ))}
-              </select>
+              {/* Brand Dropdown */}
+              <Popover open={brandOpen} onOpenChange={setBrandOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" className="w-full justify-between">
+                    {form.brand || "Select Brand"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search brand..." />
+                    <CommandEmpty>No brand found.</CommandEmpty>
+                    <CommandGroup>
+                      {brands.map((brand) => (
+                        <CommandItem
+                          key={brand._id}
+                          onSelect={() => {
+                            setForm((prev) => ({ ...prev, brand: brand.name }));
+                            setBrandOpen(false);
+                          }}
+                        >
+                          {brand.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
 
               <Input name="product" placeholder="Product" value={form.product} onChange={handleChange} />
               <Input name="modelNumber" placeholder="Model Number" value={form.modelNumber} onChange={handleChange} />
@@ -208,7 +271,7 @@ export default function InventoryPage() {
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={selectedDate}
+                    selected={selectedDate} 
                     onSelect={setSelectedDate}
                     initialFocus
                   />
@@ -216,6 +279,16 @@ export default function InventoryPage() {
               </Popover>
 
               <Input name="remark" placeholder="Remark" value={form.remark} onChange={handleChange} />
+
+              {/* 👇 Dynamic Spec Fields */}
+              {CATEGORY_FIELDS[form.category]?.map((field) => (
+                <Input
+                  key={field}
+                  placeholder={field}
+                  value={specifications[field] || ''}
+                  onChange={(e) => handleSpecChange(field, e.target.value)}
+                />
+              ))}
 
               <Button type="submit">Save</Button>
             </form>
