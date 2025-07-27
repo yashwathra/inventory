@@ -45,15 +45,15 @@ type FormInventoryItem = {
   product: string;
   modelNumber: string;
   stockQuantity: string;
-  costPrice: string;
+  costPrice: string
   remark: string;
 };
 
 // 📦 Dynamic Spec Fields per Category
 const CATEGORY_FIELDS: Record<string, string[]> = {
   Mobile: ['RAM', 'ROM', 'IMEI', 'Color'],
-  Tablet: ['RAM', 'ROM', 'IMEI', 'Color'],
-  TV: ['Screen Size', 'Resolution', 'Smart'],
+  Tablet: ['RAM', 'ROM', 'IMEI', 'Color'],  
+  Tv: ['Screen Size', 'Resolution', 'Smart'],
   Laptop: ['RAM', 'SSD', 'Processor', 'OS'],
 };
 
@@ -298,7 +298,9 @@ export default function InventoryPage() {
 
       <div className="overflow-x-auto">
         <div className="min-w-[1200px]">
-          <AgGridTable columnDefs={columnDefs} rowData={rowData} />
+          <AgGridTable columnDefs={columnDefs} rowData={rowData}
+          
+          />
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { AgGridReact } from "ag-grid-react";
-import { ModuleRegistry, AllCommunityModule, ColDef, } from "ag-grid-community";
+import { ModuleRegistry, AllCommunityModule, ColDef } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { useMemo } from "react";
@@ -9,7 +9,6 @@ import { useMemo } from "react";
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-// Props with generic type T for rowData
 type AgGridTableProps<T> = {
   columnDefs: ColDef[];
   rowData: T[];
@@ -28,16 +27,22 @@ export default function AgGridTable<T>({
   }), []);
 
   return (
-    <div className={`ag-theme-alpine w-full h-[500px] ${className}`}>
-      <AgGridReact
-        columnDefs={columnDefs}
-        rowData={rowData}
-        defaultColDef={defaultColDef}
-        pagination={true}
-        paginationPageSize={20}
-        domLayout="autoHeight"
-        theme="legacy"
-      />
+    <div className={`flex flex-col h-[600px] w-full ${className}`}>
+      
+      {/* Scrollable AG Grid container */}
+      <div className="ag-theme-alpine flex-1 overflow-y-auto">
+        <AgGridReact
+          columnDefs={columnDefs}
+          rowData={rowData}
+          defaultColDef={defaultColDef}
+          pagination={true}
+          paginationPageSize={20}
+          domLayout="normal"
+          theme="legacy"
+        />
+      </div>
+
+      
     </div>
   );
 }

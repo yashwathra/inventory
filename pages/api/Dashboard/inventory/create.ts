@@ -6,7 +6,7 @@ import { parse } from 'date-fns';
 const CATEGORY_FIELDS: Record<string, string[]> = {
   Mobile: ['RAM', 'ROM', 'IMEI', 'Color'],
   Tablet: ['RAM', 'ROM', 'IMEI', 'Color'],
-  TV: ['Screen Size', 'Resolution', 'Smart'],
+  Tv: ['Screen Size', 'Resolution', 'Smart'],
   Laptop: ['RAM', 'SSD', 'Processor', 'OS'],
 };
 

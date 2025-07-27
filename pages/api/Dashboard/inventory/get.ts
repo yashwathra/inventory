@@ -30,8 +30,6 @@ export default async function handler(
   if (req.method === 'GET') {
     try {
       const { category } = req.query;
-
-      // If you want to filter by category
       const query = category ? { category } : {};
 
       const items = await Inventory.find(query);
