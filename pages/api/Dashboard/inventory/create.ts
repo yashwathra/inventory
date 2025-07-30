@@ -1,14 +1,20 @@
+//FILE: pages/api/Dashboard/inventory/create.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/lib/db';
 import Inventory from '@/models/Inventory';
-import { parse } from 'date-fns';
+import Product from '@/models/Product';
+import { parseISO } from 'date-fns';
+import { Types } from 'mongoose';
 
-const CATEGORY_FIELDS: Record<string, string[]> = {
-  Mobile: ['RAM', 'ROM', 'IMEI', 'Color'],
-  Tablet: ['RAM', 'ROM', 'IMEI', 'Color'],
-  Tv: ['Screen Size', 'Resolution', 'Smart'],
-  Laptop: ['RAM', 'SSD', 'Processor', 'OS'],
-};
+// Define the expected structure of a Product document
+interface LeanProduct {
+  _id: Types.ObjectId;
+  name: string;
+  brand?: string;
+  category?: string;
+  modelNumber?: string;
+  specifications?: Record<string, string>;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   await db();
@@ -19,50 +25,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const {
-      category,
-      brand,
-      product,
-      modelNumber,
+      product: productId,
       stockQuantity,
       costPrice,
       purchaseDate,
       remark,
-      specifications,
+      specifications, // ✅ This comes from frontend, must be extracted
     } = req.body;
 
-    if (!category || !brand || !product) {
-      return res.status(400).json({ success: false, error: 'Category, brand, and product are required.' });
+    if (!productId || !costPrice || !purchaseDate) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: productId, costPrice, or purchaseDate',
+      });
     }
 
-    const allowedFields = CATEGORY_FIELDS[category];
-    if (allowedFields && specifications) {
-      for (const key of Object.keys(specifications)) {
-        if (!allowedFields.includes(key)) {
-          return res.status(400).json({
-            success: false,
-            error: `Invalid specification field "${key}" for category "${category}".`,
-          });
-        }
-      }
+    const product = await Product.findById(productId).lean<LeanProduct>();
+    if (!product) {
+      return res.status(404).json({ success: false, error: 'Product not found' });
     }
 
-    const parsedDate = purchaseDate
-      ? parse(purchaseDate, 'dd-MM-yyyy', new Date())
-      : undefined;
+    const parsedDate = purchaseDate ? parseISO(purchaseDate) : undefined;
 
-    const newItem = await Inventory.create({
-      category,
-      brand,
-      product,
-      modelNumber,
-      stockQuantity: Number(stockQuantity),
-      costPrice: Number(costPrice),
-      purchaseDate: parsedDate,
-      remark,
-      specifications: specifications || {},
-    });
+    console.log('Saving Specs:', specifications);
 
-    return res.status(201).json({ success: true, data: newItem });
+    const newInventory = await Inventory.create({
+  product: product._id,
+  stockQuantity: Number(stockQuantity),
+  costPrice: Number(costPrice),
+  purchaseDate: parsedDate,
+  remark,
+  specifications: new Map(Object.entries(specifications || {})), // ✅ FIXED
+  specificationsSnapshot: new Map(Object.entries(product.specifications || {})), // ✅ FIXED
+});
+
+
+    return res.status(201).json({ success: true, data: newInventory });
   } catch (error) {
     console.error('Inventory Create Error:', error);
     return res.status(500).json({ success: false, error: 'Failed to add item' });

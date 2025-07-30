@@ -2,20 +2,30 @@ import mongoose, { Schema, model, models } from 'mongoose';
 
 const InventorySchema = new Schema(
   {
-    category: { type: String, required: true },
-    brand: { type: String, required: true },
-    product: { type: String, required: true },
-    modelNumber: { type: String },
-    stockQuantity: { type: Number, default: 0 },
-    costPrice: { type: Number, default: 0 },
-    purchaseDate: { type: Date, default: Date.now },
-    remark: { type: String },
-
+    product: {
+      type: Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true,
+    },
+    stockQuantity: {
+      type: Number,
+      default: 0,
+    },
+    costPrice: {
+      type: Number,
+      required: true,
+    },
+    purchaseDate: {
+      type: Date,
+      default: Date.now,
+    },
+    remark: {
+      type: String,
+    },
     specifications: {
-      type: Map,
-      of: String,
-      default: {}
-    }
+  type: Schema.Types.Mixed, // or: Object
+  default: {},
+},
   },
   { timestamps: true }
 );

@@ -20,6 +20,7 @@ export default function Navbar() {
         {/* Desktop Links */}
         <nav className="hidden md:flex space-x-6">
           <Link href="/Dashboard" className="hover:underline">Dashboard</Link>
+          <Link href="/Dashboard/product" className="hover:underline">Products</Link>
           <Link href="/Dashboard/inventory" className="hover:underline">Inventory</Link>
           <Link href="/Dashboard/sales" className="hover:underline">Sales</Link>
           <Link href="/Dashboard/dailyExpance" className="hover:underline">Daiy Expance</Link>
@@ -45,6 +46,7 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden bg-sky-500 text-white px-4 pb-4 space-y-2">
           <Link href="/Dashboard" className="block">Dashboard</Link>
+          <Link href="/Dashboard/product" className="block">Products</Link>
           <Link href="/Dashboard/inventory" className="block">Inventory</Link>
           <Link href="/Dashboard/sales" className="block">Sales</Link>
            <Link href="/Dashboard/dailyExpance" className="block">Daiy Expance</Link>
