@@ -19,10 +19,17 @@ import axios from "axios";
 // Type definitions
 interface InventoryItem {
   _id: string;
-  product: string;
-  brand: string;
+  product: {
+    _id: string;
+    name: string;
+    brand: string;
+    modelNumber?: string;
+    specifications?: Record<string, string>;
+  };
   costPrice: number;
+  specifications?: Record<string, string>; 
 }
+
 
 interface Bill {
   billNo: string;
@@ -54,6 +61,7 @@ export default function SalesPage() {
   const [quantity, setQuantity] = useState<number>(1);
   const [customerName, setCustomerName] = useState<string>("");
   const [customerPhone, setCustomerPhone] = useState<string>("");
+  const [customerAddress, setCustomerAddress] = useState<string>("");
   const [paymentMode, setPaymentMode] = useState<string>("");
   const [totalAmount, setTotalAmount] = useState<number>(0);
 
@@ -73,20 +81,21 @@ export default function SalesPage() {
     try {
       const res = await axios.get("/api/Dashboard/bills/get");
 
-    const formatted: Bill[] = res.data.data.map((bill: {
-  _id: string;
-  customer: { name: string; phone: string };
-  products: { product: string; quantity: number }[];
-  totalAmount: number;
-  billDate: string;
-  paymentMode: string;
-}) => ({
+      const formatted: Bill[] = res.data.data.map((bill: {
+        _id: string;
+        customer: { name: string; phone: string, address: string };
+        products: { product: string; quantity: number }[];
+        totalAmount: number;
+        billDate: string;
+        paymentMode: string;
+      }) => ({
 
         billNo: bill._id.slice(-6).toUpperCase(),
         customer: bill.customer?.name,
         phone: bill.customer?.phone,
+        address: bill.customer?.address,
         products: bill.products.map((p: { product: string }) => p.product).join(", "),
-stock: bill.products.reduce((sum: number, p: { quantity: number }) => sum + (p.quantity || 1), 0),
+        stock: bill.products.reduce((sum: number, p: { quantity: number }) => sum + (p.quantity || 1), 0),
 
         total: `₹${bill.totalAmount}`,
         billDate: bill.billDate ? new Date(bill.billDate).toISOString().split("T")[0] : "",
@@ -104,11 +113,12 @@ stock: bill.products.reduce((sum: number, p: { quantity: number }) => sum + (p.q
   }, []);
 
   useEffect(() => {
-    const selectedProduct = inventory.find((item) => item._id === selectedProductId);
-    if (selectedProduct) {
-      setTotalAmount(selectedProduct.costPrice * quantity);
+    const selectedItem = inventory.find((item) => item._id === selectedProductId);
+    if (selectedItem) {
+      setTotalAmount(selectedItem.costPrice * quantity);
     }
   }, [selectedProductId, quantity, inventory]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,12 +127,14 @@ stock: bill.products.reduce((sum: number, p: { quantity: number }) => sum + (p.q
       customer: {
         name: customerName,
         phone: customerPhone,
+        address: customerAddress,
       },
-      selectedProductIds: [selectedProductId],
+      selectedProductIds: [selectedProductId], // still valid as inventory item _id
       quantity,
       paymentMode,
       billDate: new Date().toISOString(),
     };
+
 
     try {
       await axios.post("/api/Dashboard/bills/create", payload);
@@ -164,6 +176,11 @@ stock: bill.products.reduce((sum: number, p: { quantity: number }) => sum + (p.q
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
               />
+              <Input
+              placeholder="Address"
+              value={customerAddress}
+              onChange={(e) => setCustomerAddress(e.target.value)}
+              />
 
               <select
                 value={selectedProductId}
@@ -172,11 +189,13 @@ stock: bill.products.reduce((sum: number, p: { quantity: number }) => sum + (p.q
               >
                 <option value="">Select Product</option>
                 {inventory.map((item) => (
-                  <option key={item._id} value={item._id}>
-                    {item.product} - {item.brand} ({item.costPrice}₹)
-                  </option>
-                ))}
+  <option key={item._id} value={item._id}>
+    {item.product.brand} - {item.product.name} - {item.product.modelNumber} ({item.costPrice}₹)
+  </option>
+))}
+
               </select>
+
 
               <Input
                 placeholder="Quantity"
@@ -185,6 +204,20 @@ stock: bill.products.reduce((sum: number, p: { quantity: number }) => sum + (p.q
                 onChange={(e) => setQuantity(Number(e.target.value))}
                 min={1}
               />
+              {selectedProductId && (
+                <div className="text-sm bg-muted p-3 rounded border text-gray-700">
+                  <strong>Specifications:</strong>
+                  <ul className="list-disc ml-5 mt-1">
+                    {Object.entries(
+                      inventory.find((i) => i._id === selectedProductId)?.specifications || {}
+                    ).map(([key, value]) => (
+                      <li key={key}>{key}: {value}</li>
+                    ))}
+
+                  </ul>
+                </div>
+              )}
+
 
               <select
                 value={paymentMode}

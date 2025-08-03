@@ -27,7 +27,7 @@ interface Product {
   category: string;
   brand: string;
   modelNumber: string;
-  specifications: Record<string, string>;
+  
 }
 interface ICategory {
   _id: string;
@@ -58,7 +58,7 @@ export default function ProductPage() {
     category: '',
     brand: '',
     modelNumber: '',
-    specifications: {},
+    
   });
 
   const fetchProducts = async () => {
@@ -107,7 +107,7 @@ setBrands(brandData.data?.map((b: IBrand) => b.name) || []);
       const data = await res.json();
       if (res.ok) {
         toast.success('Product added');
-        setForm({ name: '', category: '', brand: '', modelNumber: '', specifications: {} });
+        setForm({ name: '', category: '', brand: '', modelNumber: '',  });
         setOpen(false);
         fetchProducts();
       } else {

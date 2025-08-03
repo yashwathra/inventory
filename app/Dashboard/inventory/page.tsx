@@ -88,55 +88,56 @@ export default function InventoryPage() {
     const data = await res.json();
     setInventoryData(data.data || []);
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!selectedProduct || !costPrice || !purchaseDate) {
-    toast.error('Please fill required fields');
-    return;
-  }
+    if (!selectedProduct || !costPrice || !purchaseDate) {
+      toast.error('Please fill required fields');
+      return;
+    }
 
-  const finalSpecifications = { ...specifications };
-  if (newSpecKey && newSpecValue) {
-    finalSpecifications[newSpecKey] = newSpecValue;
-  }
+    const finalSpecifications = { ...specifications };
+    if (newSpecKey && newSpecValue) {
+      finalSpecifications[newSpecKey] = newSpecValue;
+    }
 
-  const payload = {
-    product: selectedProduct._id,
-    costPrice: Number(costPrice),
-    stockQuantity: Number(stockQuantity),
-    purchaseDate,
-    remark,
-    specifications: finalSpecifications,
+    const payload = {
+      product: selectedProduct._id,
+      costPrice: Number(costPrice),
+      stockQuantity: Number(stockQuantity),
+      purchaseDate,
+      remark,
+      specifications: finalSpecifications,
+    };
+
+    try {
+      const res = await fetch('/api/Dashboard/inventory/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        toast.success('Inventory added');
+        setOpen(false);
+        setSelectedProduct(null);
+        setCostPrice('');
+        setStockQuantity('');
+        setPurchaseDate(new Date());
+        setRemark('');
+        setSpecifications({});
+        setNewSpecKey('');
+        setNewSpecValue('');
+        fetchInventory();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to add inventory');
+      }
+    } catch (error) {
+      toast.error('Server error');
+    }
   };
 
-  try {
-    const res = await fetch('/api/Dashboard/inventory/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    if (res.ok) {
-      toast.success('Inventory added');
-      setOpen(false);
-      setSelectedProduct(null);
-      setCostPrice('');
-      setStockQuantity('');
-      setPurchaseDate(new Date());
-      setRemark('');
-      setSpecifications({});
-      setNewSpecKey('');
-      setNewSpecValue('');
-      fetchInventory();
-    } else {
-      toast.error('Failed to add inventory');
-    }
-  } catch {
-    toast.error('Server error');
-  }
-};
 
   const handleSpecChange = (key: string, value: string) => {
     setSpecifications((prev) => ({ ...prev, [key]: value }));
@@ -175,7 +176,7 @@ export default function InventoryPage() {
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
                     {selectedProduct
-                      ? `${selectedProduct.brand} - ${selectedProduct.name}`
+                      ? `${selectedProduct.brand} - ${selectedProduct.name} (${selectedProduct.modelNumber})`
                       : 'Select Product'}
                   </Button>
                 </PopoverTrigger>
@@ -190,8 +191,9 @@ export default function InventoryPage() {
                           onSelect={() => {
                             setSelectedProduct(prod);
                             setProductOpen(false);
-                            setSpecifications(prod.specifications || {});
+                            setSpecifications({});
                           }}
+
                         >
                           {prod.brand} - {prod.name} ({prod.modelNumber})
                         </CommandItem>
