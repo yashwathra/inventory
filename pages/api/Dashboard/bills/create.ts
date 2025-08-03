@@ -12,20 +12,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const {
-      customer,             // { name, phone, address? }
-      selectedProductIds,   // array of product _ids
-      quantity,             // number
-      paymentMode,          // optional, string
-                   // optional, string
-      billDate              // optional, passed from frontend
+      customer,            
+      selectedProductIds,   
+      quantity,             
+      paymentMode,
+      billDate,
     } = req.body;
 
-    // ✅ Basic Validation
     if (!customer?.name || !selectedProductIds || !Array.isArray(selectedProductIds) || selectedProductIds.length === 0) {
       return res.status(400).json({ success: false, error: 'Missing required customer or product data' });
     }
 
-    // ✅ Fetch Inventory
+    
     const products = await Inventory.find({
       _id: { $in: selectedProductIds },
     });
@@ -34,33 +32,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ success: false, error: 'Some selected products not found in inventory' });
     }
 
-    // ✅ Prepare bill products array
-    const productList = products.map(product => ({
-      productId: product._id,
-      product: product.product,
-      modelNumber: product.modelNumber || '',
-      brand: product.brand || '',
-      costPrice: product.costPrice,
-      quantity: quantity || 1,
-      date: billDate || new Date(),
-    }));
+    
+    const productList = [];
+
+    for (const product of products) {
+      const productQty = typeof quantity === 'object' ? quantity[product._id.toString()] : quantity || 1;
+
+      if (product.stockQuantity < productQty) {
+        return res.status(400).json({
+          success: false,
+          error: `Insufficient stock for product ID ${product._id}`,
+        });
+      }
+
+      product.stockQuantity -= productQty;
+      await product.save();
+
+      productList.push({
+        productId: product._id,
+        product: product.product,
+        modelNumber: product.modelNumber || '',
+        brand: product.brand || '',
+        costPrice: product.costPrice,
+        quantity: productQty,
+        date: billDate || new Date(),
+      });
+    }
 
     const totalAmount = productList.reduce((sum, p) => sum + p.costPrice * p.quantity, 0);
 
-    // ✅ Create Bill
-   // ✅ Create Bill
-const newBill = await Bill.create({
-  customer: {
-    name: customer.name,
-    phone: customer.phone || '',
-    
-  },
-  products: productList,
-  totalAmount,
-  paymentMode: paymentMode || '',
-  billDate: billDate || new Date(),
-});
-
+    const newBill = await Bill.create({
+      customer: {
+        name: customer.name,
+        phone: customer.phone || '',
+      },
+      products: productList,
+      totalAmount,
+      paymentMode: paymentMode || '',
+      billDate: billDate || new Date(),
+    });
 
     return res.status(200).json({ success: true, data: newBill });
   } catch (error) {

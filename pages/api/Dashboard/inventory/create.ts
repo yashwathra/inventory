@@ -55,8 +55,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   costPrice: Number(costPrice),
   purchaseDate: parsedDate,
   remark,
-  specifications: new Map(Object.entries(specifications || {})), // ✅ FIXED
-  specificationsSnapshot: new Map(Object.entries(product.specifications || {})), // ✅ FIXED
+  specifications: new Map(Object.entries(specifications || {})), 
+  specificationsSnapshot: new Map(Object.entries(product.specifications || {})), 
 });
 
 

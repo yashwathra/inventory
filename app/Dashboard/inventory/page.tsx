@@ -133,7 +133,7 @@ export default function InventoryPage() {
         const data = await res.json();
         toast.error(data.error || 'Failed to add inventory');
       }
-    } catch (error) {
+    } catch  {
       toast.error('Server error');
     }
   };

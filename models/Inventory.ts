@@ -23,7 +23,7 @@ const InventorySchema = new Schema(
       type: String,
     },
     specifications: {
-  type: Schema.Types.Mixed, // or: Object
+  type: Schema.Types.Mixed, 
   default: {},
 },
   },
